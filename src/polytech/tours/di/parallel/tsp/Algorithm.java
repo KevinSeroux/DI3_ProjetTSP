@@ -17,4 +17,4 @@ public interface Algorithm {
 	 */
 	public Solution run(Properties config);
 	
-}
+}//coucou
