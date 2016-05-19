@@ -53,6 +53,17 @@ public class Algorithm42 implements Algorithm {
 	 * @return the best solution found with the algorithm
 	 */
 	private Solution localSearch(Solution generatedSolution) {
+		boolean continueExploration = true;
+		Solution newSolution = new Solution();
+		
+		while(continueExploration)
+		{
+			newSolution = exploreNeighborhood(generatedSolution);
+			if(newSolution.getOF() < generatedSolution.getOF())
+				generatedSolution = newSolution;
+			else
+				continueExploration = false;
+		}
 		return generatedSolution;
 	}
 
@@ -62,7 +73,24 @@ public class Algorithm42 implements Algorithm {
 	 * @param generatedSolution The solution to begin with
 	 * @return the best solution found with the algorithm
 	 */
-	private Solution exploreNeightborhood(Solution solution) {
-		return solution;
+	private Solution exploreNeighborhood(Solution solution) {
+		Solution newSolution = new Solution();
+		Solution swapSolution = new Solution();
+		newSolution = solution;
+		swapSolution = solution.clone();
+		int i, j = 0;
+
+		for(i = 0; i<solution.size(); i++)
+		{
+			for(j = 0; j<solution.size(); j++)
+			{
+				swapSolution.swap(i, j); //control special cases (e.g. i=j)
+
+				if(swapSolution.getOF() < newSolution.getOF())
+					newSolution = swapSolution;
+			}
+		}
+		
+		return newSolution;
 	}
 }
