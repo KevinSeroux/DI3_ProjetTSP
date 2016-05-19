@@ -1,37 +1,63 @@
 package polytech.tours.di.parallel.tsp.fourtytwo;
 
+import java.util.Collections;
 import java.util.Properties;
+import java.util.Random;
 
 import polytech.tours.di.parallel.tsp.Algorithm;
 import polytech.tours.di.parallel.tsp.Instance;
 import polytech.tours.di.parallel.tsp.InstanceReader;
 import polytech.tours.di.parallel.tsp.Solution;
+import polytech.tours.di.parallel.tsp.TSPCostCalculator;
 
 public class Algorithm42 implements Algorithm {
+	private Random randomizer; //TODO: Use parallel version
+	private Instance instance;
 
 	@Override
 	public Solution run(Properties config) {
 		Solution finalSolution = null;
+		Solution inLoopBestSolution;
+		
+		//Get some parameters
+		randomizer = new Random(Long.valueOf(config.getProperty("seed")));
 		
 		//Build the instance from the config file
 		InstanceReader ir = new InstanceReader();
 		ir.buildInstance(config.getProperty("instance"));
-		Instance instance = ir.getInstance();
+		instance = ir.getInstance();
 
 		//Manage the timing (*1000 to have the time in millisec)
 		long timeMax = Long.valueOf(config.getProperty("maxcpu")) * 1000;
 		long startTime = System.currentTimeMillis();
 		while((System.currentTimeMillis() - startTime) < timeMax) {
 			
-			//Here we go
+			//Find the solutions
 			Solution randomSolution = generateRandomSolution();
 			Solution locallySearchedSolution = localSearch(randomSolution);
 			
-			if(locallySearchedSolution.getOF() > randomSolution.getOF())
-				finalSolution = locallySearchedSolution;
-			else
+			if(finalSolution == null)
 				finalSolution = randomSolution;
+			
+			//Test which solution is better
+			if(locallySearchedSolution.getOF() > randomSolution.getOF()) {
+				System.out.println("Random: " + randomSolution);
+				System.out.println("[OP] Locally searched solution: " + randomSolution);
+				inLoopBestSolution = locallySearchedSolution;
+			}
+			else {
+				System.out.println("[OP] Random: " + randomSolution);
+				System.out.println("Locally searched solution: " + randomSolution);
+				inLoopBestSolution = randomSolution;
+			}
+			
+			if(inLoopBestSolution.getOF() < finalSolution.getOF())
+				finalSolution = inLoopBestSolution;
+			
+			System.out.println("---------------------------------------");
 		}
+		
+		System.out.println("=======================================");
 		
 		return finalSolution;
 	}
@@ -41,9 +67,22 @@ public class Algorithm42 implements Algorithm {
 	 * @return the random solution
 	 */
 	private Solution generateRandomSolution() {
+		Solution solution = new Solution();
 		
+		/* We add all the city (index) to the solution,
+		 * no more things are required. TSPCostCalculator
+		 * do the trick */
+		for(int i = 0; i < instance.getN(); i++) {
+			solution.add(i);
+		}
 		
-		return null;
+		//Randomize the solution indices (cities)
+		Collections.shuffle(solution, randomizer);
+
+		//Compute the efficiency of the solution
+		solution.setOF(TSPCostCalculator.calcOF(instance, solution));
+		
+		return solution;
 	}
 
 	/** TODO: Tiffany
