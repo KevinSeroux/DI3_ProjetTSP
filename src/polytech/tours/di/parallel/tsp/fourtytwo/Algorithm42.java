@@ -40,14 +40,14 @@ public class Algorithm42 implements Algorithm {
 				finalSolution = randomSolution;
 			
 			//Test which solution is better
-			if(locallySearchedSolution.getOF() > randomSolution.getOF()) {
+			if(locallySearchedSolution.getOF() < randomSolution.getOF()) {
 				System.out.println("Random: " + randomSolution);
-				System.out.println("[OP] Locally searched solution: " + randomSolution);
+				System.out.println("[OP] Locally searched solution: " + locallySearchedSolution);
 				inLoopBestSolution = locallySearchedSolution;
 			}
 			else {
 				System.out.println("[OP] Random: " + randomSolution);
-				System.out.println("Locally searched solution: " + randomSolution);
+				System.out.println("Locally searched solution: " + locallySearchedSolution);
 				inLoopBestSolution = randomSolution;
 			}
 			
@@ -93,7 +93,7 @@ public class Algorithm42 implements Algorithm {
 	 */
 	private Solution localSearch(Solution generatedSolution) {
 		boolean continueExploration = true;
-		Solution newSolution = new Solution();
+		Solution newSolution = null;
 		
 		while(continueExploration)
 		{
@@ -113,20 +113,20 @@ public class Algorithm42 implements Algorithm {
 	 * @return the best solution found with the algorithm
 	 */
 	private Solution exploreNeighborhood(Solution solution) {
-		Solution newSolution = new Solution();
-		Solution swapSolution = new Solution();
-		newSolution = solution;
-		swapSolution = solution.clone();
-		int i, j = 0;
+		Solution newSolution = solution;
+		Solution swapSolution = solution.clone();
 
-		for(i = 0; i<solution.size(); i++)
+		for(int i = 0; i < solution.size(); i++)
 		{
-			for(j = 0; j<solution.size(); j++)
+			for(int j = 0; j < solution.size(); j++)
 			{
-				swapSolution.swap(i, j); //control special cases (e.g. i=j)
-
-				if(swapSolution.getOF() < newSolution.getOF())
-					newSolution = swapSolution;
+				if(i != j) {
+					swapSolution.swap(i, j);
+					swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
+	
+					if(swapSolution.getOF() < newSolution.getOF())
+						newSolution = swapSolution;
+				}
 			}
 		}
 		
