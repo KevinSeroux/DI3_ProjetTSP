@@ -93,17 +93,18 @@ public class Algorithm42 implements Algorithm {
 	 */
 	private Solution localSearch(Solution generatedSolution) {
 		boolean continueExploration = true;
-		Solution newSolution = null;
+		Solution bestSolution = generatedSolution.clone();
 		
 		while(continueExploration)
 		{
-			newSolution = exploreNeighborhood(generatedSolution);
-			if(newSolution.getOF() < generatedSolution.getOF())
-				generatedSolution = newSolution;
+			Solution newSolution;
+			newSolution = exploreNeighborhood(bestSolution);
+			if(newSolution.getOF() < bestSolution.getOF())
+				bestSolution = newSolution.clone();
 			else
 				continueExploration = false;
 		}
-		return generatedSolution;
+		return bestSolution;
 	}
 
 	/** TODO: Tiffany
@@ -118,14 +119,15 @@ public class Algorithm42 implements Algorithm {
 
 		for(int i = 0; i < solution.size(); i++)
 		{
-			for(int j = 0; j < solution.size(); j++)
+			for(int j = i+1; j < solution.size(); j++)
 			{
-				if(i != j) {
+				if(i != j)
+				{
 					swapSolution.swap(i, j);
 					swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
 	
 					if(swapSolution.getOF() < newSolution.getOF())
-						newSolution = swapSolution;
+						newSolution = swapSolution.clone();
 				}
 			}
 		}
