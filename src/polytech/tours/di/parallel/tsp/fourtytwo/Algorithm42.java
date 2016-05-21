@@ -17,7 +17,6 @@ public class Algorithm42 implements Algorithm {
 	@Override
 	public Solution run(Properties config) {
 		Solution finalSolution = null;
-		Solution inLoopBestSolution;
 		
 		//Get some parameters
 		randomizer = new Random(Long.valueOf(config.getProperty("seed")));
@@ -31,6 +30,7 @@ public class Algorithm42 implements Algorithm {
 		long timeMax = Long.valueOf(config.getProperty("maxcpu")) * 1000;
 		long startTime = System.currentTimeMillis();
 		while((System.currentTimeMillis() - startTime) < timeMax) {
+			Solution inLoopBestSolution;
 			
 			//Find the solutions
 			Solution randomSolution = generateRandomSolution();
@@ -57,13 +57,12 @@ public class Algorithm42 implements Algorithm {
 			System.out.println("---------------------------------------");
 		}
 		
-		System.out.println("=======================================");
+		System.out.println("---------------------------------------");
 		
 		return finalSolution;
 	}
 	
-	/** TODO: Kevin
-	 * Generate and return only one random solution
+	/** Generate and return only one random solution
 	 * @return the random solution
 	 */
 	private Solution generateRandomSolution() {
@@ -85,11 +84,11 @@ public class Algorithm42 implements Algorithm {
 		return solution;
 	}
 
-	/** TODO: Tiffany
-	 * Return the best solution among many changed solution
+	/* Return the best solution among many changed solution
 	 * (local search algorithm)
 	 * @param generatedSolution The solution to begin with
-	 * @return the best solution found with the algorithm
+	 * @return the best solution found with the algorithm,
+	 * null if no better solution
 	 */
 	private Solution localSearch(Solution generatedSolution) {
 		boolean continueExploration = true;
@@ -98,17 +97,18 @@ public class Algorithm42 implements Algorithm {
 		while(continueExploration)
 		{
 			Solution newSolution;
+
 			newSolution = exploreNeighborhood(bestSolution);
 			if(newSolution.getOF() < bestSolution.getOF())
 				bestSolution = newSolution.clone();
 			else
 				continueExploration = false;
 		}
+
 		return bestSolution;
 	}
 
-	/** TODO: Tiffany
-	 * Return the best solution among many changed solution
+	/* Return the best solution among many changed solution
 	 * (local search algorithm)
 	 * @param generatedSolution The solution to begin with
 	 * @return the best solution found with the algorithm
@@ -119,16 +119,14 @@ public class Algorithm42 implements Algorithm {
 
 		for(int i = 0; i < solution.size(); i++)
 		{
-			for(int j = i+1; j < solution.size(); j++)
+			for(int j = i + 1; j < solution.size(); j++)
 			{
-				if(i != j)
-				{
-					swapSolution.swap(i, j);
-					swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
-	
-					if(swapSolution.getOF() < newSolution.getOF())
-						newSolution = swapSolution.clone();
-				}
+				//TODO: Compute arc cost before and after, then compare
+				swapSolution.swap(i, j);
+				swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
+
+				if(swapSolution.getOF() < newSolution.getOF())
+					newSolution = swapSolution.clone();
 			}
 		}
 		
