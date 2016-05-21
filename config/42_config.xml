@@ -7,7 +7,7 @@
    <!-- Obligatoire -->
    <entry key="algorithm">polytech.tours.di.parallel.tsp.fourtytwo.Algorithm42</entry>
    <entry key="maxcpu">10</entry> <!-- Temps de travail max en secondes 20, 30-->
-   <entry key="instance">./data/wi29.tsp.txt</entry>
+   <entry key="instance">./data/qa194.tsp.txt</entry>
    
    <!-- Facultatif -->
    <entry key="seed">123456</entry> <!--  Seed du nb aléatoire -->

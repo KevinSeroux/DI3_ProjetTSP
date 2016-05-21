@@ -30,29 +30,19 @@ public class Algorithm42 implements Algorithm {
 		long timeMax = Long.valueOf(config.getProperty("maxcpu")) * 1000;
 		long startTime = System.currentTimeMillis();
 		while((System.currentTimeMillis() - startTime) < timeMax) {
-			Solution inLoopBestSolution;
 			
 			//Find the solutions
-			Solution randomSolution = generateRandomSolution();
-			Solution locallySearchedSolution = localSearch(randomSolution);
+			Solution generatedSolution = generateRandomSolution();
+			System.out.println("Random: " + generatedSolution);
+			
+			Solution locallySearchedSolution = localSearch(generatedSolution);
+			System.out.println("Locally searched solution: " + locallySearchedSolution);
 			
 			if(finalSolution == null)
-				finalSolution = randomSolution;
+				finalSolution = generatedSolution;
 			
-			//Test which solution is better
-			if(locallySearchedSolution.getOF() < randomSolution.getOF()) {
-				System.out.println("Random: " + randomSolution);
-				System.out.println("[OP] Locally searched solution: " + locallySearchedSolution);
-				inLoopBestSolution = locallySearchedSolution;
-			}
-			else {
-				System.out.println("[OP] Random: " + randomSolution);
-				System.out.println("Locally searched solution: " + locallySearchedSolution);
-				inLoopBestSolution = randomSolution;
-			}
-			
-			if(inLoopBestSolution.getOF() < finalSolution.getOF())
-				finalSolution = inLoopBestSolution;
+			if(locallySearchedSolution.getOF() < finalSolution.getOF())
+				finalSolution = locallySearchedSolution;
 			
 			System.out.println("---------------------------------------");
 		}
@@ -90,21 +80,22 @@ public class Algorithm42 implements Algorithm {
 	 * @return the best solution found with the algorithm,
 	 * null if no better solution
 	 */
-	private Solution localSearch(Solution generatedSolution) {
+	private Solution localSearch(Solution solution) {
 		boolean continueExploration = true;
-		Solution bestSolution = generatedSolution.clone();
+		Solution bestSolution = solution;
 		
 		while(continueExploration)
 		{
-			Solution newSolution;
-
-			newSolution = exploreNeighborhood(bestSolution);
-			if(newSolution.getOF() < bestSolution.getOF())
-				bestSolution = newSolution.clone();
+			Solution swapSolution;
+			
+			swapSolution = exploreNeighborhood(bestSolution);
+			//TODO: Solve this, computeSwapCost is inaccurate
+			if((float)swapSolution.getOF() < (float)bestSolution.getOF())
+				bestSolution = swapSolution;
 			else
 				continueExploration = false;
 		}
-
+		
 		return bestSolution;
 	}
 
@@ -114,22 +105,54 @@ public class Algorithm42 implements Algorithm {
 	 * @return the best solution found with the algorithm
 	 */
 	private Solution exploreNeighborhood(Solution solution) {
-		Solution newSolution = solution;
+		Solution bestSolution = solution;
 		Solution swapSolution = solution.clone();
 
 		for(int i = 0; i < solution.size(); i++)
 		{
 			for(int j = i + 1; j < solution.size(); j++)
 			{
-				//TODO: Compute arc cost before and after, then compare
-				swapSolution.swap(i, j);
-				swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
+				double costBefore = swapSolution.getOF();
 
-				if(swapSolution.getOF() < newSolution.getOF())
-					newSolution = swapSolution.clone();
+				double relativeCostBefore = computeSwapCost(swapSolution, i, j);
+				swapSolution.swap(i, j);
+				double relativeCostAfter = computeSwapCost(swapSolution, i, j);
+				double diffCost = relativeCostBefore - relativeCostAfter;
+				
+				swapSolution.setOF(costBefore - diffCost);
+				//swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
+				
+				if(swapSolution.getOF() < bestSolution.getOF()) 
+					bestSolution = swapSolution.clone();
 			}
 		}
 		
-		return newSolution;
+		return bestSolution;
+	}
+	
+	private double computeSwapCost(Solution solution, int i, int j) {
+		double cost;
+		int locFrom, locTo;
+		int n = solution.size();
+		
+		locFrom = solution.get((i - 1 + n) % n);
+		locTo = solution.get(i);
+		cost = instance.getDistance(locFrom, locTo);
+		
+		locFrom = solution.get(i);
+		locTo = solution.get(i + 1);
+		cost += instance.getDistance(locFrom, locTo);
+
+		if(j - i != 1) {
+			locFrom = solution.get(j - 1);
+			locTo = solution.get(j);
+			cost += instance.getDistance(locFrom, locTo);
+		}
+		
+		locFrom = solution.get(j);
+		locTo = solution.get((j + 1) % n);
+		cost += instance.getDistance(locFrom, locTo);
+		
+		return cost;
 	}
 }
