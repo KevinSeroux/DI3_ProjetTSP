@@ -1,7 +1,6 @@
 package polytech.tours.di.parallel.tsp.fourtytwo;
 
 import java.util.Collections;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 
 import polytech.tours.di.parallel.tsp.Instance;
@@ -9,6 +8,7 @@ import polytech.tours.di.parallel.tsp.Solution;
 import polytech.tours.di.parallel.tsp.TSPCostCalculator;
 
 public class ThreadedSolutionFinder implements Runnable {
+	Thread thread;
 	final Instance instance;
 	Solution solution;
 	
@@ -20,12 +20,13 @@ public class ThreadedSolutionFinder implements Runnable {
 
 	@Override
 	public void run() {
+		thread = Thread.currentThread();
 		solution.setOF(Double.MAX_VALUE); //No solution so it has the higher cost
 		
 		do {
 			Solution randomSolution = generateRandomSolution();
 			System.out.println("Random: " + randomSolution);
-			Solution currentSolution = localSearch(randomSolution); //TODO: Must be interruptable
+			Solution currentSolution = localSearch(randomSolution); //TODO: Must be interruptible
 			System.out.println("Locally searched solution: " + currentSolution);
 			
 			if(currentSolution.getOF() < solution.getOF()) {
@@ -35,7 +36,7 @@ public class ThreadedSolutionFinder implements Runnable {
 				solution.setOF(currentSolution.getOF());
 			}
 
-		} while(!Thread.interrupted());
+		} while(!thread.isInterrupted());
 	}
 	
 	private Solution generateRandomSolution() {
@@ -67,7 +68,7 @@ public class ThreadedSolutionFinder implements Runnable {
 		boolean continueExploration = true;
 		Solution bestSolution = solution;
 		
-		while(continueExploration)
+		while(continueExploration && !thread.isInterrupted())
 		{
 			Solution swapSolution;
 			
@@ -91,9 +92,9 @@ public class ThreadedSolutionFinder implements Runnable {
 		Solution bestSolution = solution;
 		Solution swapSolution = solution.clone();
 
-		for(int i = 0; i < solution.size(); i++)
+		for(int i = 0; i < solution.size() && !thread.isInterrupted(); i++)
 		{
-			for(int j = i + 1; j < solution.size(); j++)
+			for(int j = i + 1; j < solution.size() && !thread.isInterrupted(); j++)
 			{
 				double costBefore = swapSolution.getOF();
 
@@ -114,6 +115,7 @@ public class ThreadedSolutionFinder implements Runnable {
 	}
 	
 	private double computeSwapCost(Solution solution, int i, int j) {
+		//TODO: Not accurate
 		double cost;
 		int locFrom, locTo;
 		int n = solution.size();
