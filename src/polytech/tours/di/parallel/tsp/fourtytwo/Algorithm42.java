@@ -34,8 +34,7 @@ public class Algorithm42 implements Algorithm {
 	}
 	
 	public Solution executeThreads() {
-		
-		//TODO: Manage threads interruption
+
 		int nbThreads = Runtime.getRuntime().availableProcessors();
 		List<Solution> solutions = new ArrayList<Solution>(nbThreads);
 		List<Callable<Object>> threads = new ArrayList<Callable<Object>>(nbThreads);
@@ -48,18 +47,18 @@ public class Algorithm42 implements Algorithm {
 			}
 		}, timeMax, TimeUnit.SECONDS);
 		
-		long startTime = System.currentTimeMillis();
-		
 		//Threads that compute
 		for(int i = 0; i < nbThreads; i++) {
 			Solution currentSolution = new Solution();
 			solutions.add(currentSolution);
 			
 			ThreadedSolutionFinder solutionFinder =
-					new ThreadedSolutionFinder(seed, instance, currentSolution);
+					new ThreadedSolutionFinder(i, seed, instance, currentSolution);
 			
 			threads.add(Executors.callable(solutionFinder));
 		}
+		
+		long startTime = System.currentTimeMillis();
 		
 		/* Execute and then wait that all threads have finished */
 		try {

@@ -8,12 +8,14 @@ import polytech.tours.di.parallel.tsp.Solution;
 import polytech.tours.di.parallel.tsp.TSPCostCalculator;
 
 public class ThreadedSolutionFinder implements Runnable {
+	final int workerId;
 	Thread thread;
 	final Instance instance;
-	Solution solution;
+	final Solution solution;
 	
-	public ThreadedSolutionFinder(long seed, Instance instance, Solution solution) {
+	public ThreadedSolutionFinder(int workerId, long seed, Instance instance, Solution solution) {
 		//ThreadLocalRandom.current().setSeed(seed); TODO
+		this.workerId = workerId;
 		this.instance = instance;
 		this.solution = solution;
 	}
@@ -25,15 +27,15 @@ public class ThreadedSolutionFinder implements Runnable {
 		
 		do {
 			Solution randomSolution = generateRandomSolution();
-			System.out.println("Random: " + randomSolution);
-			Solution currentSolution = localSearch(randomSolution); //TODO: Must be interruptible
-			System.out.println("Locally searched solution: " + currentSolution);
+			Solution localSearchSol = localSearch(randomSolution);
+			System.out.println("[Worker " + workerId +
+					"] " + randomSolution.getOF() + "\t-> " + localSearchSol.getOF());
 			
-			if(currentSolution.getOF() < solution.getOF()) {
+			if(localSearchSol.getOF() < solution.getOF()) {
 				//Copy the elements because the solution reference must not change
 				solution.clear();
-				solution.addAll(currentSolution);
-				solution.setOF(currentSolution.getOF());
+				solution.addAll(localSearchSol);
+				solution.setOF(localSearchSol.getOF());
 			}
 
 		} while(!thread.isInterrupted());
@@ -104,7 +106,6 @@ public class ThreadedSolutionFinder implements Runnable {
 				double diffCost = relativeCostBefore - relativeCostAfter;
 				
 				swapSolution.setOF(costBefore - diffCost);
-				//swapSolution.setOF(TSPCostCalculator.calcOF(instance, swapSolution));
 				
 				if(swapSolution.getOF() < bestSolution.getOF()) 
 					bestSolution = swapSolution.clone();
@@ -113,7 +114,14 @@ public class ThreadedSolutionFinder implements Runnable {
 		
 		return bestSolution;
 	}
-	
+
+
+	/* Compute the relative cost of the swap of i and j
+	 * @param solution The solution to compute the cost
+	 * @param i The index to be swapped with j
+	 * @param j The index to be swapped with i
+	 * @return the relative cost
+	 */
 	private double computeSwapCost(Solution solution, int i, int j) {
 		//TODO: Not accurate
 		double cost;
