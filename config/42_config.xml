@@ -6,9 +6,12 @@
    </comment>
    <!-- Obligatoire -->
    <entry key="algorithm">polytech.tours.di.parallel.tsp.fourtytwo.Algorithm42</entry>
-   <entry key="maxcpu">20</entry> <!-- Temps de travail max en secondes 20, 30-->
+   <entry key="maxcpu">3</entry>
+   
+   <!-- If 0 or not specified, take the count of logical cores of your CPU -->
+   <entry key="maxthreads">8</entry> 
    <entry key="instance">./data/qa194.tsp.txt</entry>
    
-   <!-- Facultatif -->
-   <entry key="seed">123456</entry> <!--  Seed du nb aléatoire -->
+   <!-- Not supported -->
+   <!-- <entry key="seed">123456</entry> -->
 </properties>

@@ -13,8 +13,7 @@ public class ThreadedSolutionFinder implements Runnable {
 	final Instance instance;
 	final Solution solution;
 	
-	public ThreadedSolutionFinder(int workerId, long seed, Instance instance, Solution solution) {
-		//ThreadLocalRandom.current().setSeed(seed); TODO
+	public ThreadedSolutionFinder(int workerId, Instance instance, Solution solution) {
 		this.workerId = workerId;
 		this.instance = instance;
 		this.solution = solution;
