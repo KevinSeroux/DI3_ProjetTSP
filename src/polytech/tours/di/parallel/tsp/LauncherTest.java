@@ -2,14 +2,10 @@ package polytech.tours.di.parallel.tsp;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.Properties;
 
 public class LauncherTest {
 	static private final int countTests = 6;
-	static private PrintStream outOriginal;
-	static private PrintStream outNull;
 	static private Properties config;
 	static private Algorithm algorithm;
 
@@ -27,14 +23,12 @@ public class LauncherTest {
 		try {
 			Class<?> c = Class.forName(config.getProperty("algorithm"));
 			algorithm = (Algorithm)c.newInstance();
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e){
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
-		
-		outOriginal = System.out;
-		outNull = new PrintStream(new OutputStream() {
-			public void write(int b) {}
-		});
+
+		//To not display too much informations
+		config.setProperty("verbose", Boolean.toString(false));
 		
 		//run the test
 		executeTest("./data/qa194.tsp.txt", 3);
@@ -46,11 +40,9 @@ public class LauncherTest {
 		config.setProperty("instance", data);
 		config.setProperty("maxcpu", Integer.toString(time));
 		
-		for(int i = 1; i < Runtime.getRuntime().availableProcessors() * 2; i++) {
+		for(int i = 1; i <= Runtime.getRuntime().availableProcessors() * 2; i++) {
 			config.setProperty("maxthreads", Integer.toString(i));
 			long avg = 0;
-
-			System.setOut(outNull);
 
 			//Many tests to have meaning full results
 			for(int j = 0; j < countTests; j++) {
@@ -58,7 +50,6 @@ public class LauncherTest {
 			}
 			avg /= countTests;
 
-			System.setOut(outOriginal);
 			System.out.println("Instance: " + data + "\tThreads: " + i + "\tavg:" + avg);
 		}
 	}

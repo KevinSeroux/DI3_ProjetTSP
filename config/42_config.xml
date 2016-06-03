@@ -6,12 +6,14 @@
    </comment>
    <!-- Obligatoire -->
    <entry key="algorithm">polytech.tours.di.parallel.tsp.fourtytwo.Algorithm42</entry>
-   <entry key="maxcpu">3</entry>
+   <entry key="verbose">true</entry> <!-- If the algorithm must speak -->
+   <entry key="maxcpu">10</entry>
    
-   <!-- If 0 or not specified, take the count of logical cores of your CPU -->
-   <entry key="maxthreads">8</entry> 
+   <!-- If 0 take the count of logical cores of your CPU
+   According to some tests, 3 seems to be a good count -->
+   <entry key="maxthreads">3</entry>
    <entry key="instance">./data/qa194.tsp.txt</entry>
    
-   <!-- Not supported -->
+   <!-- Not supported anymore, each local thread has its own private seed -->
    <!-- <entry key="seed">123456</entry> -->
 </properties>

@@ -1,6 +1,7 @@
 package polytech.tours.di.parallel.tsp.fourtytwo;
 
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import polytech.tours.di.parallel.tsp.Instance;
@@ -8,12 +9,16 @@ import polytech.tours.di.parallel.tsp.Solution;
 import polytech.tours.di.parallel.tsp.TSPCostCalculator;
 
 public class ThreadedSolutionFinder implements Runnable {
-	final int workerId;
-	Thread thread;
-	final Instance instance;
-	final Solution solution;
+	private final int workerId;
+	private final Instance instance;
+	private final boolean isVerbose;
+	private final Solution solution;
 	
-	public ThreadedSolutionFinder(int workerId, Instance instance, Solution solution) {
+	private Thread thread;
+	private Random random;
+	
+	public ThreadedSolutionFinder(boolean isVerbose, int workerId, Instance instance, Solution solution) {
+		this.isVerbose = isVerbose;
 		this.workerId = workerId;
 		this.instance = instance;
 		this.solution = solution;
@@ -22,13 +27,17 @@ public class ThreadedSolutionFinder implements Runnable {
 	@Override
 	public void run() {
 		thread = Thread.currentThread();
+		random = ThreadLocalRandom.current();
 		solution.setOF(Double.MAX_VALUE); //No solution so it has the higher cost
 		
 		do {
 			Solution randomSolution = generateRandomSolution();
 			Solution localSearchSol = localSearch(randomSolution);
-			System.out.println("[Worker " + workerId +
-					"] " + randomSolution.getOF() + "\t-> " + localSearchSol.getOF());
+			localSearchSol.setOF(TSPCostCalculator.calcOF(instance, localSearchSol));
+			
+			if(isVerbose)
+				System.out.println("[Worker " + workerId +
+						"] " + randomSolution.getOF() + "\t-> " + localSearchSol.getOF());
 			
 			if(localSearchSol.getOF() < solution.getOF()) {
 				//Copy the elements because the solution reference must not change
@@ -51,7 +60,7 @@ public class ThreadedSolutionFinder implements Runnable {
 		}
 		
 		//Randomize the solution indices (cities)
-		Collections.shuffle(solution, ThreadLocalRandom.current());
+		Collections.shuffle(solution, random);
 
 		//Compute the efficiency of the solution
 		solution.setOF(TSPCostCalculator.calcOF(instance, solution));
@@ -74,7 +83,6 @@ public class ThreadedSolutionFinder implements Runnable {
 			Solution swapSolution;
 			
 			swapSolution = exploreNeighborhood(bestSolution);
-			//TODO: Solve this, computeSwapCost is inaccurate
 			if((float)swapSolution.getOF() < (float)bestSolution.getOF())
 				bestSolution = swapSolution;
 			else
@@ -98,7 +106,6 @@ public class ThreadedSolutionFinder implements Runnable {
 			for(int j = i + 1; j < solution.size() && !thread.isInterrupted(); j++)
 			{
 				double costBefore = swapSolution.getOF();
-
 				double relativeCostBefore = computeSwapCost(swapSolution, i, j);
 				swapSolution.swap(i, j);
 				double relativeCostAfter = computeSwapCost(swapSolution, i, j);
@@ -122,7 +129,7 @@ public class ThreadedSolutionFinder implements Runnable {
 	 * @return the relative cost
 	 */
 	private double computeSwapCost(Solution solution, int i, int j) {
-		//TODO: Not accurate
+		//Not accurate, but acceptable for float values
 		double cost;
 		int locFrom, locTo;
 		int n = solution.size();

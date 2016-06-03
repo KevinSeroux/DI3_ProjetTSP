@@ -17,6 +17,7 @@ public class Algorithm42 implements Algorithm {
 	private long timeMax;
 	private int countThreads;
 	private Instance instance;
+	private boolean isVerbose;
 
 	@Override
 	public Solution run(Properties config) {
@@ -29,10 +30,12 @@ public class Algorithm42 implements Algorithm {
 		//Manage the timing (*1000 to have the time in millisec)
 		timeMax = Long.valueOf(config.getProperty("maxcpu"));
 		
+		//If we should print what the threads do
+		isVerbose = Boolean.valueOf(config.getProperty("verbose"));
+		
 		//Specify the count of threads
 		int availableProcessors = Runtime.getRuntime().availableProcessors();
-		countThreads = Integer.valueOf(config.getProperty("maxthreads",
-				Integer.toString(availableProcessors)));
+		countThreads = Integer.valueOf(config.getProperty("maxthreads"));
 		if(countThreads == 0)
 			countThreads = availableProcessors;
 		
@@ -57,7 +60,7 @@ public class Algorithm42 implements Algorithm {
 			solutions.add(currentSolution);
 			
 			ThreadedSolutionFinder solutionFinder =
-					new ThreadedSolutionFinder(i, instance, currentSolution);
+					new ThreadedSolutionFinder(isVerbose, i, instance, currentSolution);
 			
 			threads.add(Executors.callable(solutionFinder));
 		}
@@ -73,9 +76,11 @@ public class Algorithm42 implements Algorithm {
 			return null;
 		}
 		
-		long time = System.currentTimeMillis() - startTime;
-		System.out.println("---------------------------------------");
-		System.out.println("All tasks terminated in " + time / 1000.f + "s");
+		if(isVerbose) {
+			long time = System.currentTimeMillis() - startTime;
+			System.out.println("---------------------------------------");
+			System.out.println("All tasks terminated in " + time / 1000.f + "s");
+		}
 		
 		//Iterate over all the found solutions
 		Solution bestSolution = solutions.get(0);
